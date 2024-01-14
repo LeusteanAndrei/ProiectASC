@@ -106,7 +106,7 @@ Aceasta metoda functioneaza intrucat atunci cand umbla in stiva trebuia sa aloca
 
 Pentru a nu fi prea multe decimale, printf afiseaza float-urile cu 2 decimale. Acestea insa sunt retinute in memorie complet. ( oricand poate fi modificata precizia )
 
-Functia scanf f citeste string-ul de la input si apoi inlocuieste %s, %c, %f, %d cu echivalentele lor in formatarea regex a python-ului. Dupa aceea folosind biblioteca parse, le extrage intr-o lista si pe rand le pune in adresele de memorie din registrii dati ca argumente ( in aceasta ordine: a0, a1, a2, ....). Daca string-ul de la input nu este identic cu cel dat ca parametru (fara %d) atunci intoarce eroare. 
+Functia scanf f citeste string-ul de la input si apoi inlocuieste %s, %c, %f, %d cu echivalentele lor in formatarea regex a python-ului. Dupa aceea folosind biblioteca parse, le extrage intr-o lista si pe rand le pune in adresele de memorie din registrii dati ca argumente ( in aceasta ordine: a0, a1, a2, ....). Daca string-ul de la input nu este identic cu cel dat ca parametru (fara %d) atunci intoarce eroare (fireste, spatiile de la inceputul si sfarsitul celor doua string-uri -cea de la input si cea data ca argument- nu vor fi luate in calcul). 
 
 De exemplu:               
                            citirea unui integer in variabila x
