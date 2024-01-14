@@ -110,7 +110,6 @@ Functia scanf f citeste string-ul de la input si apoi inlocuieste %s, %c, %f, %d
 
 De exemplu:               
                          # citirea unui integer in variabila x
-
                           la a1, x        (x:.space4)
                           la a0, formatscan (formatscan: .asciz "%d !@$")
                           call scanf
