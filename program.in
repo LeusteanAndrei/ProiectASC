@@ -1,0 +1,132 @@
+.section .rodata
+prreadsize: .asciz "Input array size:\n"
+readsize: .asciz "%d"
+formatprint: .asciz "%d "
+endline: .asciz "\n"
+prreadarray: .asciz "Enter numbers one per line:\n"
+array:.space 1000
+size: .space 4
+x: .space 4
+larray: .space 1000
+
+afissuma: .asciz "Suma elementelor este: %d\n"
+afissort: .asciz "Array-ul sortat este: "
+ 
+.section .text
+.global main
+
+
+arraysum:
+        # a0 = int a[]
+        # a1 = int size
+        # t0 = ret
+        # t1 = i
+        li    t0, 0        # ret = 0
+        li    t1, 0        # i = 0
+    1:  # For loop
+        bge   t1, a1, 1f   # if i >= size, break
+        slli  t2, t1, 2    # Multiply i by 4 (1 << 2 = 4)
+        add   t2, a0, t2   # Update memory address
+        lw    t2, 0(t2)    # Dereference address to get integer
+        add   t0, t0, t2   # Add integer value to ret
+        addi  t1, t1, 1    # Increment the iterator
+        j     1b           # Jump back to start of loop (1 backwards)
+    1:
+        mv    a0, t0       # Move t0 (ret) into a0
+        ret                # Return via return address register
+
+bubsort:
+        # a0 = long *list
+        # a1 = size
+        # t0 = swapped
+        # t1 = i
+    1: # do loop
+        li t0, 0          # swapped = false
+        li t1, 1          # i = 1
+    2: # for loop
+        bge t1, a1, 2f    # break if i >= size
+        slli t3, t1, 3    # scale i by 8 (for long)
+        add t3, a0, t3    # new scaled memory address
+        ld  t4, -8(t3)    # load list[i-1] into t4
+        ld  t5, 0(t3)     # load list[i] into t5
+        ble t4, t5, 3f    # if list[i-1] < list[i], it's in position
+        # if we get here, we need to swap
+        li  t0, 1         # swapped = true
+        sd  t4, 0(t3)     # list[i] = list[i-1]
+        sd  t5, -8(t3)    # list[i-1] = list[i]
+    3: # bottom of for loop body
+        addi t1, t1, 1    # i++
+        j    2b           # loop again
+    2: # bottom of do loop body
+        bnez t0, 1b       # loop if swapped = true
+        ret               # return via return address register
+
+
+
+main:
+
+
+la a0, prreadsize
+call printf
+la a1, size
+la a0, readsize
+call scanf
+la a0, prreadarray
+call printf
+li t0, 0
+la a2, size
+lw a2, 0(a2)
+
+la s1, array
+la s2, larray
+start_read:
+    bge t0, a2, end_readf
+    
+    la a1, x
+    la a0, readsize
+    call scanf
+
+    lw a1, 0(a1)
+    sw a1, 0(s1)
+    sd a1, 0(s2)
+
+    addi s2, s2, 8
+    addi s1, s1, 4
+    addi t0, t0, 1
+    j start_readb 
+end_read:
+
+la a0, array
+la a1, size
+lw a1, (a1)
+call arraysum
+
+mv a1, a0
+la a0, afissuma
+call printf
+
+
+la a0, larray
+la a1, size
+lw a1, 0(a1)
+call bubsort    
+
+la a0, afissort
+call printf
+
+li s2, 0
+la s3, size
+lw s3, 0(s3)
+la s1, larray
+start_afis:
+    bge s2, s3, endf
+
+    ld a1, 0(s1)
+    la a0, formatprint
+    call printf
+
+    addi s1, s1, 8
+    addi s2, s2, 1
+    j start_afisb
+end:
+ret
