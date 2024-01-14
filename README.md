@@ -58,11 +58,11 @@ Declararea variabilelor este codificata astfel:
     
         atunci abc: .asciz "123" ar fi:
         
-  '1'+'000000000011+01100001+01100010+01100011' (codif(nume)) + '10' + '000000000011+00110001+00110010+00110011' (codif(continut))
+        '1'+'000000000011+01100001+01100010+01100011' (codif(nume)) + '10' + '000000000011+00110001+00110010+00110011' (codif(continut))
   
         iar abc: .space 8 ar fi:
         
-  '1' + '000000000011+01100001+01100010+01100011' (codif(nume)) + '00' + '000000001000'
+        '1' + '000000000011+01100001+01100010+01100011' (codif(nume)) + '00' + '000000001000'
 
   Decodificarea se face invers.
 
