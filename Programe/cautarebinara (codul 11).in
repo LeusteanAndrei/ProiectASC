@@ -1,0 +1,153 @@
+.section .rodata
+
+matrix: .space 1000
+size: .space 4
+x:.space 4
+to_find: .space 4
+
+prlung: .asciz "Lungimea:\n"
+prmat: .asciz "Matricea:\n"
+prto_search: .asciz "De cautat:\n"
+
+
+formatscan:.asciz "%d"
+formatprint:.asciz "%d "
+printare: .asciz "Elementul %d se afla pe pozitia %d!\n"
+endline: .asciz "\n"
+
+.section .text
+.global main
+
+afisare_matrice:
+    #s1 = matricea de afisat
+    #t0 = nr linii(n)
+    #t1 = nr coloane(m)
+
+
+    addi sp, sp, -20
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+    sw a1, 8(sp)
+    sw s2, 12(sp)
+    sw s3, 16(sp)
+
+    addi s1, s1, -4
+    li s2, 0 #indice i
+    for_linii:
+        bge s2, t0, end_afisaref
+
+        li s3, 0
+        for_coloane:
+            bge s3, t1, end_for_coloanef
+            #s2 = i, s3 = j, t0 = n, t1 = m
+
+            addi s1, s1, 4
+
+            lw a1, 0(s1)
+            la a0, formatprint
+            call printf
+
+            addi s3, s3, 1
+            j for_coloaneb
+        end_for_coloane:
+
+        la a0, endline
+        call printf
+
+        addi s2, s2, 1
+        j for_liniib
+    
+    end_afisare:
+
+    lw ra, 0(sp)
+    lw a0, 4(sp)
+    lw a1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp) 
+    addi sp, sp, 20
+    ret
+
+binsearch:
+        # a0 = int arr[]
+        # a1 = int needle
+        # a2 = int size
+        # t0 = mid
+        # t1 = left
+        # t2 = right
+        li      t1, 0        # left = 0
+        addi    t2, a2, -1   # right = size - 1
+    1: # while loop
+        bgt     t1, t2, 1f   # left > right, break
+        add     t0, t1, t2   # mid = left + right
+        srai    t0, t0, 1    # mid = (left + right) / 2
+        # Get the element at the midpoint
+        slli    t4, t0, 2    # Scale the midpoint by 4
+        add     t4, a0, t4   # Get the memory address of arr[mid]
+        lw      t4, 0(t4)    # Dereference arr[mid]
+        # See if the needle (a1) > arr[mid] (t3)
+        ble     a1, t4, 2f   # if needle <= t3, we need to check the next condition
+        # If we get here, then the needle is > arr[mid]
+        addi    t1, t0, 1    # left = mid + 1
+        j       1b
+    2:
+        bge     a1, t4, 2f   # skip if needle >= arr[mid]
+        # If we get here, then needle < arr[mid]
+        addi    t2, t0, -1   # right = mid - 1
+        j       1b
+    2:
+        # If we get here, then needle == arr[mid]
+        mv      a0, t0
+        ret
+    1:
+        li a0, -1
+        ret
+
+main:
+
+la a0, prlung
+call printf
+la a1, size
+la a0, formatscan
+call scanf
+
+li t0, 0
+la t1, size
+lw t1, 0(t1)
+la a0, prmat
+call printf
+la s1, matrix
+start_citire:
+    bge t0,  t1, stop_citiref
+    
+    la a1, x
+    la a0, formatscan
+    call scanf
+    lw a1, 0(a1)
+
+    sw a1, 0(s1)
+    addi s1, s1, 4
+    addi t0, t0, 1
+    j start_citireb
+stop_citire:
+
+la a0, prto_search
+call printf
+la a1, to_find
+la a0, formatscan
+call scanf
+
+la a1, to_find
+lw a1, 0(a1)
+la a2, size
+lw a2, 0(a2)
+la a0, matrix
+call binsearch
+
+mv a2, a0
+la a1, to_find
+lw a1, 0(a1)
+la a0, printare
+call printf
+
+ret
+

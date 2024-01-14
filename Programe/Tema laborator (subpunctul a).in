@@ -1,0 +1,381 @@
+.section .rodata
+
+x: .space 4
+y: .space 4
+n: .space 4
+m: .space 4
+k: .space 4
+p: .space 4
+mat: .space 800
+aux: .space 800
+formatprint: .asciz "%d "
+formatscan: .asciz "%d"
+endline: .asciz "\n"
+
+.section .text
+.global main
+
+mul: # modifica a0, a1 si returneaza in a0 = a0*a1
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a3, 4(sp)
+
+    #a0 = x
+    #a1 = y
+    #a3 = x*y
+    
+    li a3, 0
+    bge a1, a3, pozitivf
+
+        start1:
+        beqz a1, endf
+        sub a3, a3, a0
+        addi a1, a1, 1
+        j start1b
+
+    pozitiv:
+        start:
+            beqz a1, endf
+            add a3, a3, a0
+            addi a1, a1, -1
+            j startb
+        end:
+
+    mv a0, a3
+    lw ra, 0(sp)
+    lw a3, 4(sp)
+    addi sp, sp, 8
+    ret
+
+copiere_matrice:
+    #s2=matricea de copiat
+    #s1=matricea in care copiam
+    #t0=n
+    #t1=m
+
+    addi sp, sp, -20
+    sw ra, 0(sp)
+    sw a3, 4(sp)
+    sw a4, 8(sp)
+    sw a0, 12(sp)
+    sw a1, 16(sp)
+
+    addi s1, s1, -4
+    addi s2, s2, -4
+
+    li a3, 0 # indice line
+    for_linii2:
+    bge a3, t0, end2f
+    li a4, 0
+
+        for_coloane2:
+            bge a4, t1, end_for_coloane2f
+    
+            addi s1, s1, 4
+            addi s2, s2, 4
+
+            lw a1, 0(s2)
+            sw a1, 0(s1)
+
+            addi a4, a4, 1
+            j for_coloane2b
+        end_for_coloane2:
+
+
+    addi a3, a3, 1
+    j for_linii2b
+    end2:
+    
+    lw ra, 0(sp)
+    lw a3, 4(sp)
+    lw a4, 8(sp)
+    lw a0, 12(sp)
+    lw a1, 16(sp)
+    addi sp, sp, 20
+    ret
+
+afisare_matrice:
+    #s1 = matricea de afisat
+    #t0 = nr linii(n)
+    #t1 = nr coloane(m)
+
+
+    addi sp, sp, -20
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+    sw a1, 8(sp)
+    sw s2, 12(sp)
+    sw s3, 16(sp)
+
+    addi s1, s1, -4
+    li s2, 0 #indice i
+    for_linii:
+        bge s2, t0, end_afisaref
+
+        li s3, 0
+        for_coloane:
+            bge s3, t1, end_for_coloanef
+            #s2 = i, s3 = j, t0 = n, t1 = m
+
+            addi s1, s1, 4
+
+            lw a1, 0(s1)
+            la a0, formatprint
+            call printf
+
+            addi s3, s3, 1
+            j for_coloaneb
+        end_for_coloane:
+
+        la a0, endline
+        call printf
+
+        addi s2, s2, 1
+        j for_liniib
+    
+    end_afisare:
+
+    lw ra, 0(sp)
+    lw a0, 4(sp)
+    lw a1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp) 
+    addi sp, sp, 20
+    ret
+
+suma:
+    #s0 = poz din matrice
+    #t0 = n - nr de linii
+    #t1 = m - nr de coloane
+    #a0 = suma
+    addi sp, sp, -12
+    sw ra, 0(sp)
+    sw a1, 4(sp)
+    sw t1, 8(sp)
+    add t1, t1, t1 #t1 = 2*m
+    add t1, t1, t1 #t1 = 4*m
+
+    li a0,0
+    addi s0, s0, -4 # elementul din stanga s0-4
+    lw a1, 0(s0)
+    add a0, a0, a1
+   
+    addi s0, s0, 8 # elementul din dr s0 + 4
+    lw a1, 0(s0)
+    add a0, a0, a1
+
+
+    sub s0, s0, t1 # elementul din dr sus s0 -m + 4
+    lw a1, 0(s0)
+    add a0, a0, a1
+
+    addi s0, s0, -4 # elementul de sus s0 - m
+    lw a1, 0(s0)
+    add a0, a0, a1
+
+    addi s0, s0, -4 # elementul din st sus s0 - m - 4
+    lw a1, 0(s0)
+    add a0, a0, a1
+
+    add s0, s0, t1
+    add s0, s0, t1 # elementul din stanga jos s0 + m -4
+    lw a1, 0(s0)
+    add a0, a0, a1
+
+    addi s0, s0, 4 # elementul de jos s0 + m
+    lw a1, 0(s0)
+    add a0, a0, a1
+
+    addi s0, s0, 4 #elementul din dr jos s0 + m + 4
+    lw a1, 0(s0)
+    add a0, a0, a1 
+
+    sub s0, s0, t1
+    addi s0, s0, -4
+
+    #a0 contine suma elem din jur acm
+    #aducem pe s0 la val initiala
+
+    lw ra, 0(sp)
+    lw a1, 4(sp)
+    lw t1, 8(sp)
+    addi sp, sp, 8
+    ret
+
+modify_cell:
+    #a0 =  suma vecinilor celulei
+    #a1 = val din celula respectiva ( 1 sau 0 )
+    #returnez in a0 valoarea pe care trb sa o bag in celula ( 1 sau 0 )
+
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a2, 4(sp)
+ 
+    beqz a1, moartaf
+
+        #deci celula e in viata
+        li a2, 1
+        bge a2, a0, moaref
+
+        li a2, 4
+        bge a0, a2, moaref
+
+        li a0, 1
+        j modify_endf
+
+        moare:
+        li a0, 0
+        j modify_endf
+
+    moarta:
+        addi a0, a0, -3 #scad 3 din a0, daca a0 = 0  atunci celula are exact 3 vecini deci invie, altfel ramana moarta
+        beqz a0, invief
+        
+        li a0, 0
+        j modify_endf
+        
+        invie:
+        li a0, 1
+
+    modify_end:
+    lw ra, 0(sp)
+    lw a2, 4(sp)
+    addi sp, sp, 8
+    ret
+
+main:
+
+la a1, n
+la a0, formatscan
+call scanf
+
+la a1, m
+la a0, formatscan
+call scanf
+
+la a1, k
+la a0, formatscan
+call scanf
+
+la t1, m
+lw t1, 0(t1)
+addi t1, t1, 2
+la t0, n
+lw t0, 0(t0)
+addi t0, t0, 2
+la t2, k
+lw t2, 0(t2)
+
+#t0=n, t1=m, t2=k
+
+start_citire_celule:
+    beqz t2, end_citire_celulef
+
+    la a1, x
+    la a0, formatscan
+    call scanf
+
+    la a1, y
+    la a0, formatscan
+    call scanf
+
+    la t3, x
+    lw t3, 0(t3)
+    addi t3, t3, 1
+    la t4, y
+    lw t4, 0(t4)
+    addi t4, t4, 1
+
+    la s0, mat
+
+    mv a0, t3
+    mv a1, t1
+    call mul
+    #a0=x*m
+    add a0, a0, t4
+    #a0=x*m+y
+    li a1, 4
+    call mul
+    #a0=(x*m+y)*4
+    add s0, s0, a0
+
+    li t3, 1
+    sw t3, 0(s0)
+    
+    addi t2, t2, -1
+    j start_citire_celuleb
+end_citire_celule:
+
+la a1, p
+la a0, formatscan
+call scanf
+
+la s1, mat
+call afisare_matrice
+la a0, endline
+call printf
+
+la a3, p
+lw a3, 0(a3)
+
+START:
+beqz a3, FINALf
+    
+    #fac o iteratie in care iau din mat si modific in aux
+    li t2, 1 #indice i
+    game_of_life:   
+        addi t0, t0, -1
+        bge t2, t0, end_game_of_lifef
+        addi t0, t0, 1
+        
+        li t3, 1 
+        columns:
+        #i=t2, j=t3, t0=n, t1=m
+            addi t1, t1, -1
+            bge t3, t1, columns_endf
+            addi t1, t1, 1
+
+            mv a0, t2
+            mv a1, t1
+            call mul #a0=m*i
+            add a0, a0, t3 #a0=m*i+j
+            li a1, 4
+            call mul #a0=(m*i+j)*4
+
+            la s0, mat
+            la s1, aux
+            add s0, s0, a0
+            add s1, s1, a0
+            call suma # a0 = suma vecinilor
+            lw a1, 0(s0)
+            call modify_cell
+
+            sw a0, 0(s1) # schimb in aux
+
+
+            addi t3, t3, 1
+            j columnsb
+
+        columns_end:
+        addi t1, t1, 1
+
+        addi t2, t2, 1
+        j game_of_lifeb
+
+    end_game_of_life:
+    addi t0, t0, 1
+
+    la s1, aux
+    call afisare_matrice
+    la a0, endline
+    call printf
+
+    la s1, mat
+    la s2, aux
+    call copiere_matrice
+    addi a3, a3, -1
+    j STARTb
+
+FINAL:
+
+ret

@@ -1,0 +1,178 @@
+.section .rodata
+mx: .space 8
+
+matrix: .space 100
+vector: .space 100
+dest: .space 100
+
+formatscan: .asciz "%f"
+formatprint: .asciz "%f "
+endline: .asciz "\n"
+
+inputprint: .asciz "TOATE DE TIP FLOAT (de forma: 0.0)!\nScrieti elementele matricei de 3 coloane si 3 linii cate unu pe linie:\n"
+inputmar: .asciz "Matricea 1 este:\n"
+inputvec: .asciz "Matricea 2 este:\n"
+inputrez: .asciz "Matricea 1 X Matricea 2 este:\n"
+
+.section .text
+.global main
+
+matmul:
+        # a0 = dst[3]
+        # a1 = matrix[3][3]
+        # a2 = vector[3]
+        # t0 = r
+        # t1 = c
+        # t3 = 3
+        # ft0 = d
+        # Row for loop
+        li      t0, 0
+        li      t3, 3
+    1:
+        bge     t0, t3, 1f  # break when we are done
+        fmv.s.x fa0, zero   # Set d = 0
+        # Column for loop
+        li      t1, 0
+    2:
+        bge     t1, t3, 2f
+        flw     ft0, 0(a1)     # Load matrix value
+        flw     ft1, 0(a2)     # Load vector value
+        fmul.s  ft0, ft0, ft1  # ft0 = matrix[r][c] * vec[c]
+        fadd.s  fa0, fa0, ft0  # d = d + ft0
+        addi    t1, t1, 1
+        addi    a1, a1, 4   # Move to the next matrix value
+        addi    a2, a2, 4   # Move to the next vector value
+        j       2b
+    2:
+        addi    a2, a2, -12 # Move the vector back to the top
+        fsw     fa0, 0(a0)  # dst[r] = d
+
+        addi    t0, t0, 1
+        addi    a0, a0, 4   # Move to next destination
+        j       1b
+    1:
+        ret
+afisare_matrice:
+    #s1 = matricea de afisat
+    #t0 = nr linii(n)
+    #t1 = nr coloane(m)
+
+
+    addi sp, sp, -20
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+    sw a1, 8(sp)
+    sw s2, 12(sp)
+    sw s3, 16(sp)
+
+    addi s1, s1, -4
+    li s2, 0 #indice i
+    for_linii:
+        bge s2, t0, end_afisaref
+
+        li s3, 0
+        for_coloane:
+            bge s3, t1, end_for_coloanef
+            #s2 = i, s3 = j, t0 = n, t1 = m
+
+            addi s1, s1, 4
+
+            lw a1, 0(s1)
+            la a0, formatprint
+            call printf
+
+            addi s3, s3, 1
+            j for_coloaneb
+        end_for_coloane:
+        la a0, endline
+        call printf
+        addi s2, s2, 1
+        j for_liniib
+    
+    end_afisare:
+
+    lw ra, 0(sp)
+    lw a0, 4(sp)
+    lw a1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp) 
+    addi sp, sp, 20
+    ret
+
+main:
+
+
+la s1, matrix
+
+la a0, inputprint
+call printf
+
+li t0, 0
+li t1, 9
+for_citire:
+    bge t0, t1, end_citiref
+
+    la a1, mx
+    la a0, formatscan
+    call scanf
+    la a1, mx
+    lw a1, 0(a1)
+    sw a1, 0(s1)
+
+    addi s1, s1, 4
+    addi t0, t0, 1
+    j for_citireb
+end_citire:
+
+la s1, vector
+li a0, 3.15
+sw a0, 0(s1)
+flw fa0, 0(s1)
+fsw fa0, 0(s1)
+
+addi s1, s1, 4
+li a0, 0.0
+sw a0, 0(s1)
+flw fa0, 0(s1)
+fsw fa0, 0(s1)
+
+addi s1, s1, 4
+li a0, 2.34
+sw a0, 0(s1)
+flw fa0, 0(s1)
+fsw fa0, 0(s1)
+
+la a0, dest
+la a1, matrix
+la a2, vector
+call matmul
+
+la a0, inputmar
+call printf
+
+la s1, matrix
+li t1, 3
+li t0, 3
+call afisare_matrice
+la a0, endline
+call printf
+la a0, inputvec
+call printf
+
+la s1, vector
+li t0, 3
+li t1, 1
+call afisare_matrice
+
+la a0, endline
+call printf
+la a0, inputrez
+call printf
+
+la s1, dest
+li t0, 3
+li t1, 1
+call afisare_matrice
+
+
+ret

@@ -1,0 +1,134 @@
+.section .rodata
+
+x: .space 16
+y: .space 16
+a:.space 4
+b:.space 4
+c:.space 4
+mn: .space 4
+mx: .space 4
+d: .space 8
+
+minprint: .asciz "Write three floats (like so 'f1 f2 f3'):\n"
+minprint2: .asciz "Minimum is: %f and Maximum is: %f\n"
+3scanfloat: .asciz "%f %f %f"
+scansinglefloat: .asciz "%f"
+
+writecoord: .asciz "\nEnter two coordinates (in this manner: ' x1 y1 x2 y2')\n"
+readcoord: .asciz "%f %f %f %f"
+writedist: .asciz "The distance from coordinate 1 to coordinate 2 is %f!\n"
+
+printfloat: .asciz "%f "
+
+.section .text
+.global main
+distance:
+    # a0 = Coordinate &from
+    # a1 = Coordinate &to
+    # Coordinate structure
+    # Name    Offset     Size (bytes)
+    # x       0          8
+    # y       8          8
+    # Total size = 16 bytes
+    fld   ft0, 0(a0)      # ft0 = from.x
+    fld   ft1, 8(a0)      # ft1 = from.y
+    fld   ft2, 0(a1)      # ft2 = to.x
+    fld   ft3, 8(a1)      # ft3 = to.y
+    fsub.d  ft0, ft2, ft0 # ft0 = to.x - from.x
+    fsub.d  ft1, ft3, ft1 # ft1 = to.y - from.y
+    fmul.d  ft0, ft0, ft0 # ft0 = ft0 * ft0
+    fmul.d  ft1, ft1, ft1 # ft1 = ft1 * ft1
+    fadd.d  ft0, ft0, ft1 # ft0 = ft0 + ft1
+    fsqrt.d fa0, ft0      # fa0 = sqrt(ft0)
+    # Return value goes in fa0
+    ret                   # Return
+
+minmax:
+        # fa0 = float a
+        # fa1 = float b
+        # fa2 = float c
+        # ft0 = min
+        # ft1 = max
+        # a0  = float &mn
+        # a1  = float &mx
+        # Set mn = mx = a
+        fmv.s   ft0, fa0
+        fmv.s   ft1, fa0
+        fgt.s   t0, ft0, fa1  # if (mn > b)
+        beqz    t0, 1f        # skip if false
+        # if we get here, then mn is > b
+        fmv.s   ft0, fa1      # ft0 is mn, set it to b
+        j       2f            # jump past the else if statement
+    1:
+        flt.s   t0, ft1, fa1  # else if (mx < b)
+        beqz    t0, 2f        # skip if false
+        # if we get here then mx < b
+        fmv.s   ft1, fa1      # ft1 is mx, set it to b
+    2:
+        fgt.s   t0, ft0, fa2  # if (mn > c)
+        beqz    t0, 1f        # skip if false
+        # if we get here then mn > c
+        fmv.s   ft0, fa2      # ft0 is mn, set it to c
+        j       2f            # skip the else if statement
+    1:
+        flt.s   t0, ft1, fa2  # else if (mx < c)
+        beqz    t0, 2f        # skip if false
+        # If we get here then mx < c
+        fmv.s   ft1, fa2      # ft1 is mx, set it to c
+    2:
+        fsw     ft0, 0(a0)    # store minimum into &mn
+        fsw     ft1, 0(a1)    # store maximum into &mx
+        ret                   # return via return address register
+    
+main:  
+
+    la a0, minprint
+    call printf
+
+    la a3, a
+    la a2, b
+    la a1, c
+    la a0, 3scanfloat
+    call scanf
+
+    flw fa0, 0(a3)
+    flw fa1, 0(a2)
+    flw fa2, 0(a1)
+    la a0, mn
+    la a1, mx
+    call minmax
+
+    la a2, mx
+    lw a2, 0(a2)
+    la a1, mn
+    lw a1, 0(a1)
+    la a0, minprint2
+    call printf
+
+    la a0, writecoord
+    call printf
+
+    la a1, x
+    addi a1, a1, 4
+    addi a2, a1, 8
+    la a3, y
+    addi a3, a3, 4
+    addi a4, a3, 8
+    la a0, readcoord
+    call scanf
+
+
+    la a0, x
+    la a1, y
+    call distance
+    la a0, d
+    addi a0, a0, 4
+    fsw fa0, 0(a0) 
+
+    la a1, d
+    ld a1, 0(a1)
+    la a0, writedist
+    call printf
+
+    ret
+
