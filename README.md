@@ -70,7 +70,9 @@ Declararea variabilelor este codificata astfel:
 Pentru a putea rula "Executor.py" trebuie instalata biblioteca parse ( folosita la scanf si printf ) ->  pip install parse
 
 Fisierul Huffman_encoding.in contine deja codificare Huffman deci nu mai este nevoie de Huffman_encoder.py.
-Pentru a rula programul trebuie ca urmatoarele fisiere sa se afle in acelasi foldar: 
+Pentru a rula programul trebuie ca urmatoarele fisiere sa se afle in acelasi folder:
+
+
     -Assembler.py 
     
     -Executor.py
