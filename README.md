@@ -87,30 +87,33 @@ Pentru a rula programul trebuie ca urmatoarele fisiere sa se afle in acelasi fol
     
     -main_memory_file.bin
 
-Ordinea rularii este aceasta: mai intai se scrie codul RISC-V in fisierul 'program.in', apoi este rulat programul "Assembler.py" si in final programul "Executor.py"
+Ordinea rularii este aceasta: mai intai se scrie codul RISC-V in fisierul 'program.in', apoi este rulat programul "Assembler.py" si in final programul "Executor.py".
 
-Pentru a obtine codul binar de la orice program RISC-V programul trebuie scris in fisierul 'program.in', iar apoi trebuie rula "Assembler.py". Codul masina se gaseste in fisierul 'machine_code.bin'.
+Pentru a obtine codul binar de la orice program RISC-V, programul trebuie scris in fisierul 'program.in', iar apoi trebuie rula "Assembler.py". Codul masina se gaseste in fisierul 'machine_code.bin'.
 
 # Structura programelor: 
 
+Memory.py contine patru functii prin intermediul carora se poate umbla in memorie si in stiva. ( fill_adress, get_adress, reserve_space si reset_memory )
 
 Asamblorul preia codul din fisier si il transforma in cod binrar dupa regulile de mai sus. Avem 2 string-uri rdata si program in care punem codificarile formate din '1' si '0' ( in rdata punem codificarea pentru sectiunea rodata iar in program pentru sectiunea program ). Dupa aceea le completam cu '0' uri daca este cazul si le afisam, transformandu-le in binar, in fisierul machine_code.bin.
 
-Executorul mai intai rezerva spatiul in memorie si stiva si dupa aceea parcurge sectiunea .rodata in care sunt declarate variabilele, sunt plasate in memorie si dupa aceea puse intr-o lista numita variabile. Dupa aceea parcurge tot programul ( .rodata ) fara a il executa pentru a gasi etichetele pe care le pune intr-un dictionar numit et. Dupa aceea citeste string-ul de dupa .global si incepe decodificarea si executarea instructiunilor de la pozitia acestui string.
+Executorul mai intai rezerva spatiul in memorie si stiva si dupa aceea parcurge sectiunea .rodata in care sunt declarate variabilele, sunt plasate in memorie si dupa aceea puse intr-o lista numita variabile. Dupa aceea, prin functie get_et,s parcurge tot programul ( .rodata ) fara a il executa pentru a gasi etichetele pe care le pune intr-un dictionar numit et. Dupa aceea citeste string-ul de dupa .global si incepe decodificarea si executarea instructiunilor de la pozitia acestui string.
 Registrul Global Pointer tine minte pozitia la care ne aflam in program.
 
 # Stiva si Memoria:
 
-Programul stie unde sa puna valoare ( sau de unde sa ia valoarea ) uitanfu-se daca pointerul e pozitiv sau negativ. Daca este pozitiv ( sau 0 ) atunci aceasta este locatia din MEMORIE in care umbla, daca e negativ atunci trebuie sa umble in STIVA la adresa 4096 - pointer. 
+Programul stie unde sa puna valoare ( sau de unde sa ia valoarea ) uitandu-se daca pointerul e pozitiv sau negativ. Daca este pozitiv ( sau 0 ) atunci aceasta este locatia din MEMORIE in care umbla, daca e negativ atunci trebuie sa umble in STIVA la adresa 4096 - pointer. 
 
-Aceasta metoda functioneaza intrucat atunci cand umbla in stiva trebuia sa alocam spatiu: addi sp, sp, -8 ( pt 8 bytes ), dupa aceasta instructiune programul stie ca 0(sp) este in realitate 4096-8 = 4088
+Aceasta metoda functioneaza intrucat atunci cand umbla in stiva trebuia sa alocam spatiu: addi sp, sp, -8 ( pt 8 bytes ), dupa aceasta instructiune programul stie ca 0(sp) este in realitate 4096-8 = 4088.
 
 # Observatii:
 
-Pentru a putea verifica cu mai mare usurinta cele 12 programe ( majoritatea folosesc variabile de tip word ) am adaugat instructiunea 'sw' in codificare instructiunilor. Altfel as fi putut umbla doar la vectori pe 8 bytes sau 1 byte.
+Pentru a putea verifica cu mai mare usurinta cele 12 programe ( majoritatea folosesc variabile de tip word ) am adaugat instructiunea 'sw' in codificare instructiunilor. Altfel as fi putut umbla doar la vectori pe 8 bytes sau 1 byte ( avand doar sd si sb ).
 
 Pentru functiile floating point, intrucat in python nu exista single-precision si double-precision, nu am apucat sa implementam pentru operatiile cu double-precision. Asadar, indiferent de operatie, numerele de tip floating point sunt tinute minte in memorie cu formatul IEE 754, pe 32 de biti - single-precision. 
 In plus la scanf si printf am implementat si %c, %f, %s pentru a putea afisa si citi si string-uri, float-uri si caractere.
+
+De asemenea, pentru a verifica cu usurinta programele cu float-uri putem muta prin instr li in registrii normali constante float. Acestea insa nu sunt puse cu valoarea float ci cu valoarea int a formatului IEE-754 pe 32 de biti. ( adica ' li a0, -1.0 ' muta in a0 valoarea -1082130432 ). Astfel putem lucra cu float-uri fara a fi intotdeauna nevoia sa le citim.
 
 Nu este implementata si posibilitatea de a scrie ceva in zona .text ( aceasta este ignorata de asamblor ).
 
@@ -123,7 +126,7 @@ Pentru proceduri avem o variabila numita nr_of_jumps initiata cu 0 care tine min
 
 Pentru a nu fi prea multe decimale, printf afiseaza float-urile cu 2 decimale. Acestea insa sunt retinute in memorie complet. ( oricand poate fi modificata precizia )
 
-Functia scanf f citeste string-ul de la input si apoi inlocuieste %s, %c, %f, %d cu echivalentele lor in formatarea regex a python-ului. Dupa aceea folosind biblioteca parse, le extrage intr-o lista si pe rand le pune in adresele de memorie din registrii dati ca argumente ( in aceasta ordine: a0, a1, a2, ....). Daca string-ul de la input nu este identic cu cel dat ca parametru (fara %d) atunci intoarce eroare (fireste, spatiile de la inceputul si sfarsitul celor doua string-uri -cea de la input si cea data ca argument- nu vor fi luate in calcul). 
+Functia scanf f citeste string-ul de la input si apoi inlocuieste %s, %c, %f, %d cu echivalentele lor in formatarea regex a python-ului. Dupa aceea folosind biblioteca parse, le extrage intr-o lista si pe rand le pune in adresele de memorie din registrii dati ca argumente ( in aceasta ordine: a0, a1, a2, ....). Daca string-ul de la input nu este identic cu cel dat ca parametru (fara %d) atunci intoarce eroare (fireste, spatiile de la inceputul si sfarsitul celor doua string-uri -cel de la input si cel dat ca argument- nu vor fi luate in calcul). 
 
 De exemplu:               
                            citirea unui integer in variabila x
@@ -137,7 +140,7 @@ Functia printf, trece la fiecare % din string-ul primit ca input si il inlocuies
 
 # Programele:
 
-Am pus in folder-ul 'Programe' mai multe programe in cod RISC-V care verifica in mod practic cele 12 functii din acel site. Fiecare program ilustreaza functionalitatea procedurilor cu numarul in titlu.
+Am pus in folder-ul 'Programe' mai multe programe in cod RISC-V care verifica in mod practic cele 12 functii din acel site. Fiecare program ilustreaza functionalitatea procedurilor cu numarele din titlu.
 
 In folder-ul Codurile Masina sunt puse fisierele .bin pentru fiecare din cele 12 programe RISC-V + cel pentru tema de laborator. 
 
